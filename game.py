@@ -24,19 +24,23 @@ class Game:
         }
         self.Isgameover = False
 
-    def roll_strategy(self, last_rolled_score):
+    def roll_strategy(self, last_rolled_score, claim_sender):
 
         #only happens in first turn
         if last_rolled_score is not None:
 
             #we call strategy file to decide what to keep and what to roll again
-            #keep, dices_to_throw = strategy.py
             #as an example lets say we keep the highest number
             tuple_value = self.turn_dict['roll']
 
             #new strategie nu
+            #keep, dices_to_throw = strategy.py
             keep =  (tuple_value[0],)
             throw = self.dice(2)
+
+            
+            self.turn_dict['number_of_dice_rolled'] = len(keep)
+            self.turn_dict['not_included_in_roll'] = keep
             rolled_tuple = keep + throw
             rolled_tuple = tuple(sorted(rolled_tuple, reverse=True))
             return rolled_tuple
@@ -47,6 +51,13 @@ class Game:
             rolled_tuple = self.dice(3)
             return rolled_tuple
         return
+    
+    def show_strategy(self, throw):
+
+        #show = strategy.py.show_strategy(throw)
+        visible_dice_at_end_of_turn = throw[0]
+        return visible_dice_at_end_of_turn
+    
 
     def dice(self, amount_of_dice_to_throw):
         # Roll the specified number of dice and store the results in a list
@@ -79,18 +90,17 @@ class Game:
     def next_player(self):
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
 
-    def play_turn(self, last_rolled_score):
+    def play_turn(self, last_rolled_score, claim_sender):
 
         player = self.get_current_player()
         print(f"{player.name}'s turn!")
 
         # Roll the dice
-        throw = self.roll_strategy(last_rolled_score)
-
+        throw = self.roll_strategy(last_rolled_score, claim_sender)
+        visible_dice_at_end_of_turn = self.show_strategy(throw)
         print(f"{player.name} rolled {throw}.")
 
         #update roll
-        self.turn_dict['roll'] = throw
 
         # Player decides to pass or bluff
         # bluff_score = int(input(f"{player}, what score do you announce?: "))
@@ -98,18 +108,27 @@ class Game:
         #said_score = strategy.py.whattosay()
         said_score = 654
         print(f'{player.name} announces score {said_score}')
-        return said_score, throw
+        return said_score, throw, visible_dice_at_end_of_turn
 
     def start_game(self):
         #initialization
         last_rolled_score = None
+        claim_sender =  None
 
         while not self.Isgameover:
 
-            said_score, actual_score = self.play_turn(last_rolled_score)
+            said_score, actual_score, visible_dice_at_end_of_turn = self.play_turn(last_rolled_score, claim_sender)
             # Next player decides if they believe the score
             # belief = input("Do you believe the announced score? (yes/no): ").strip().lower()
             #belief_yes_no = strategy.py.believe(dict)
+            self.turn_dict['sender'] =  self.get_current_player().name
+            self.turn_dict['receiver'] = self.get_next_player_info().name
+            self.turn_dict['roll'] = actual_score
+            self.turn_dict['cla im_sender'] = said_score
+            self.turn_dict['visible_dice_at_end_of_turn'] = visible_dice_at_end_of_turn
+            self.turn_dict['turn_action_order'] = None
+
+
             belief = random.choice(['yes','no'])
 
             if belief =='yes':
@@ -131,6 +150,7 @@ class Game:
                 #score was called so game is over
                 self.Isgameover = True
         
+            claim_sender = said_score
             last_rolled_score = actual_score
             self.next_player()
             print()
