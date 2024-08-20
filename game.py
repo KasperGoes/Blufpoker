@@ -26,9 +26,9 @@ class Game:
 
     def dice(self):
         #sort them
-        #self.values = tuple(sorted(random.randint(1, 6) for _ in range(3), reverse=True))
-
-        return (random.randint(1, 6), random.randint(1, 6), random.randint(1, 6))
+        # self.values = tuple(sorted(random.randint(1, 6) for _ in range(3), reverse=True))
+        return random.randint(1, 6)
+        # return (random.randint(1, 6), random.randint(1, 6), random.randint(1, 6))
 
     def get_current_player(self):
         return self.players[self.current_player_index]
