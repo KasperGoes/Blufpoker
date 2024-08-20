@@ -22,7 +22,7 @@ class Game:
             'number_of_dice_rolled': 0,
             'turn_action_order': ()  # exact 1 'claim', max 1 'roll', 0 to ∞ 'look' but max 1x in a row
         }
-        self.Isgameover = False
+        self.is_game_over = False
 
     def roll_strategy(self, last_rolled_score, claim_sender):
 
@@ -38,7 +38,6 @@ class Game:
             keep =  (tuple_value[0],)
             throw = self.dice(2)
 
-            
             self.turn_dict['number_of_dice_rolled'] = len(keep)
             self.turn_dict['not_included_in_roll'] = keep
             rolled_tuple = keep + throw
@@ -49,14 +48,15 @@ class Game:
 
             #if last_rolled_score is none we are in the first throw
             rolled_tuple = self.dice(3)
+            self.turn_dict['number_of_dice_rolled'] = 3
             return rolled_tuple
-        return
-    
-    def show_strategy(self, throw):
+        
+
+    def whattosay_and_show(self, throw):
 
         #show = strategy.py.show_strategy(throw)
         visible_dice_at_end_of_turn = throw[0]
-        return visible_dice_at_end_of_turn
+        return (6,5,4), visible_dice_at_end_of_turn
     
 
     def dice(self, amount_of_dice_to_throw):
@@ -67,17 +67,20 @@ class Game:
         self.turn_dict['roll'] = throw
         return throw
     
-    def from_tuple_to_int(self,tuple_value):
+    def from_tuple_to_int(self, tuple_value):
 
-        resulting_integer = int(''.join(map(str, sorted(tuple_value, reverse=True))))
+        if tuple_value is not None:
+            resulting_integer = int(''.join(map(str, sorted(tuple_value, reverse=True))))
 
-        return resulting_integer
+            return resulting_integer
 
     
-    def isMoveLegal(self, bluff_score, rolled_int):
+    def isMoveLegal(self, claim_sender, my_claim):
 
-        if (bluff_score <= rolled_int):
-             raise ValueError("The bluffed_score must be greater or equal to the rolled_values")
+        if claim_sender is not None:
+            if my_claim <= claim_sender:
+                raise ValueError("The claim must be greater than previous claim")
+            return
         return
 
     def get_current_player(self):
@@ -97,7 +100,6 @@ class Game:
 
         # Roll the dice
         throw = self.roll_strategy(last_rolled_score, claim_sender)
-        visible_dice_at_end_of_turn = self.show_strategy(throw)
         print(f"{player.name} rolled {throw}.")
 
         #update roll
@@ -105,22 +107,23 @@ class Game:
         # Player decides to pass or bluff
         # bluff_score = int(input(f"{player}, what score do you announce?: "))
         # we call the strategy file again here
-        #said_score = strategy.py.whattosay()
+        #said_score = strategy.py.whattosay_and_show(throw)
+        my_claim, visible_dice_at_end_of_turn = self.whattosay_and_show(throw)
+        self.isMoveLegal(claim_sender, self.from_tuple_to_int(my_claim))
         said_score = 654
-        print(f'{player.name} announces score {said_score}')
+        print(f'{player.name} announces score {said_score} and shows {visible_dice_at_end_of_turn}')
+
         return said_score, throw, visible_dice_at_end_of_turn
 
     def start_game(self):
+        
         #initialization
         last_rolled_score = None
         claim_sender =  None
 
-        while not self.Isgameover:
+        while not self.is_game_over:
 
             said_score, actual_score, visible_dice_at_end_of_turn = self.play_turn(last_rolled_score, claim_sender)
-            # Next player decides if they believe the score
-            # belief = input("Do you believe the announced score? (yes/no): ").strip().lower()
-            #belief_yes_no = strategy.py.believe(dict)
             self.turn_dict['sender'] =  self.get_current_player().name
             self.turn_dict['receiver'] = self.get_next_player_info().name
             self.turn_dict['roll'] = actual_score
@@ -128,6 +131,9 @@ class Game:
             self.turn_dict['visible_dice_at_end_of_turn'] = visible_dice_at_end_of_turn
             self.turn_dict['turn_action_order'] = None
 
+            # Next player decides if they believe the score
+            # belief = input("Do you believe the announced score? (yes/no): ").strip().lower()
+            #belief_yes_no = strategy.py.believe(dict)
 
             belief = random.choice(['yes','no'])
 
@@ -148,7 +154,7 @@ class Game:
                     print(f"{self.get_current_player().name} falsely accused and loses a point!")
                 
                 #score was called so game is over
-                self.Isgameover = True
+                self.is_game_over = True
         
             claim_sender = said_score
             last_rolled_score = actual_score
@@ -165,5 +171,6 @@ game.start_game()
 for player in game.players:
     print(f'{player.name} has {player.points} points ')
 
+print('round is finished')
 
 
