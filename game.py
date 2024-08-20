@@ -24,11 +24,46 @@ class Game:
         }
         self.Isgameover = False
 
-    def dice(self):
+    def roll_strategy(self, last_rolled_score):
+
+        #only happens in first turn
+        if last_rolled_score is not None:
+
+            #we call strategy file to decide what to keep and what to roll again
+            #keep, dices_to_throw = strategy.py
+            #as an example lets say we keep the highest number
+            keep =  tuple(str(last_rolled_score)[0])
+            throw = self.dice(2)
+            rolled_tuple = keep + throw
+
+        else:
+
+            #if last_rolled_score is none we are in the first throw
+            rolled_tuple = self.dice(3)
+            return rolled_tuple
+        return
+
+    def dice(self, amount_of_dice_to_throw):
+        # Roll the specified number of dice and store the results in a list
+        throw = tuple(random.randint(1, 6) for _ in range(amount_of_dice_to_throw))
+        return throw
+    
+    def dice(self, amount_of_dice_to_throw):
         #sort them
-        # self.values = tuple(sorted(random.randint(1, 6) for _ in range(3), reverse=True))
-        return random.randint(1, 6)
-        # return (random.randint(1, 6), random.randint(1, 6), random.randint(1, 6))
+        return (random.randint(1, 6), random.randint(1, 6), random.randint(1, 6))
+
+    def isMoveLegal(self, bluff_score, rolled_int):
+
+        if (bluff_score <= rolled_int):
+             raise ValueError("The bluffed_score must be greater or equal to the rolled_values")
+        return
+
+    def sort_dice(self, tuple_value):
+
+        sorted_tuple = tuple(sorted(tuple_value, reverse=True))
+        resulting_integer = int(''.join(map(str, sorted_tuple)))
+
+        return resulting_integer
 
     def get_current_player(self):
         return self.players[self.current_player_index]
@@ -40,37 +75,47 @@ class Game:
     def next_player(self):
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
 
-    def play_turn(self):
+    def play_turn(self, last_rolled_score):
+
         player = self.get_current_player()
         print(f"{player.name}'s turn!")
 
         # Roll the dice
-        rolled_value = int(self.dice())
-        print(f"{player.name} rolled {rolled_value}.")
+        throw = self.roll_strategy(last_rolled_score)
+
+        print(f"{player.name} rolled {throw}.")
+
+        #update roll
+        self.turn_dict['roll'] = throw
+        rolled_int = self.sort_dice(throw)
 
         # Player decides to pass or bluff
         # bluff_score = int(input(f"{player}, what score do you announce?: "))
-        bluff_score = 6
-        print(f'{player.name} announces score 6')
-        return bluff_score, rolled_value
+        # we call the strategy file again here
+        #said_score = strategy.py.whattosay()
+        said_score = 654
+        print(f'{player.name} announces score {said_score}')
+        return said_score, rolled_int
 
     def start_game(self):
         #initialization
         last_rolled_score = None
 
         while not self.Isgameover:
-            bluff_score, actual_score = self.play_turn()
 
+            said_score, actual_score = self.play_turn(last_rolled_score)
             # Next player decides if they believe the score
             # belief = input("Do you believe the announced score? (yes/no): ").strip().lower()
+            #belief_yes_no = strategy.py.believe(dict)
             belief = random.choice(['yes','no'])
+
             if belief =='yes':
                 print(f'player {self.get_next_player_info().name} does belief')
             else:
                 print(f'player {self.get_next_player_info().name} does not belief')
 
             if belief == 'no':
-                if bluff_score > actual_score:
+                if said_score > actual_score:
                     # Current player loses a point if caught lying
                     self.get_next_player_info().add_point()
                     print(f"{self.get_current_player().name} was caught lying!")
