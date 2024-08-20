@@ -32,9 +32,14 @@ class Game:
             #we call strategy file to decide what to keep and what to roll again
             #keep, dices_to_throw = strategy.py
             #as an example lets say we keep the highest number
-            keep =  tuple(str(last_rolled_score)[0])
+            tuple_value = self.turn_dict['roll']
+
+            #new strategie nu
+            keep =  (tuple_value[0],)
             throw = self.dice(2)
             rolled_tuple = keep + throw
+            rolled_tuple = tuple(sorted(rolled_tuple, reverse=True))
+            return rolled_tuple
 
         else:
 
@@ -46,24 +51,23 @@ class Game:
     def dice(self, amount_of_dice_to_throw):
         # Roll the specified number of dice and store the results in a list
         throw = tuple(random.randint(1, 6) for _ in range(amount_of_dice_to_throw))
+        throw = tuple(sorted(throw, reverse=True))
+
+        self.turn_dict['roll'] = throw
         return throw
     
-    def dice(self, amount_of_dice_to_throw):
-        #sort them
-        return (random.randint(1, 6), random.randint(1, 6), random.randint(1, 6))
+    def from_tuple_to_int(self,tuple_value):
 
+        resulting_integer = int(''.join(map(str, sorted(tuple_value, reverse=True))))
+
+        return resulting_integer
+
+    
     def isMoveLegal(self, bluff_score, rolled_int):
 
         if (bluff_score <= rolled_int):
              raise ValueError("The bluffed_score must be greater or equal to the rolled_values")
         return
-
-    def sort_dice(self, tuple_value):
-
-        sorted_tuple = tuple(sorted(tuple_value, reverse=True))
-        resulting_integer = int(''.join(map(str, sorted_tuple)))
-
-        return resulting_integer
 
     def get_current_player(self):
         return self.players[self.current_player_index]
@@ -87,7 +91,6 @@ class Game:
 
         #update roll
         self.turn_dict['roll'] = throw
-        rolled_int = self.sort_dice(throw)
 
         # Player decides to pass or bluff
         # bluff_score = int(input(f"{player}, what score do you announce?: "))
@@ -95,7 +98,7 @@ class Game:
         #said_score = strategy.py.whattosay()
         said_score = 654
         print(f'{player.name} announces score {said_score}')
-        return said_score, rolled_int
+        return said_score, throw
 
     def start_game(self):
         #initialization
@@ -115,7 +118,7 @@ class Game:
                 print(f'player {self.get_next_player_info().name} does not belief')
 
             if belief == 'no':
-                if said_score > actual_score:
+                if said_score > self.from_tuple_to_int(actual_score):
                     # Current player loses a point if caught lying
                     self.get_next_player_info().add_point()
                     print(f"{self.get_current_player().name} was caught lying!")
