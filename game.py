@@ -16,7 +16,7 @@ class Game:
             'sender': None,
             'receiver': None,
             'roll': (0, 0, 0),
-            'cla im_sender': (0, 0, 0),
+            'claim_sender': (0, 0, 0),
             'not_included_in_roll': (),  # 0 to 3 integers
             'visible_dice_at_end_of_turn': (),  # 0 to 3 integers
             'number_of_dice_rolled': 0,
@@ -116,7 +116,7 @@ class Game:
         return said_score, throw, visible_dice_at_end_of_turn
 
     def start_game(self):
-        
+
         #initialization
         last_rolled_score = None
         claim_sender =  None
@@ -127,7 +127,7 @@ class Game:
             self.turn_dict['sender'] =  self.get_current_player().name
             self.turn_dict['receiver'] = self.get_next_player_info().name
             self.turn_dict['roll'] = actual_score
-            self.turn_dict['cla im_sender'] = said_score
+            self.turn_dict['claim_sender'] = said_score
             self.turn_dict['visible_dice_at_end_of_turn'] = visible_dice_at_end_of_turn
             self.turn_dict['turn_action_order'] = None
 
